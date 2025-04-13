@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Chat Interface</h1>
+            <p class="connection-status">Connection: <span id="connection-status">Disconnected</span></p>
+            <p class="user-info">Your ID: <span id="user-id">Generating...</span></p>
+            <p class="chat-status">Status: <span id="chat-status">Waiting for a match...</span></p>
+        </header>
+        
+        <div class="chat-container">
+            <div class="chat-screen" id="chat-screen">
+                <div class="chat-header">
+                    <h2>Chat</h2>
+                    <div id="partner-info" class="partner-info">Waiting for someone to join...</div>
+                </div>
+                
+                <!-- Loading spinner shown while waiting for a match -->
+                <div id="loading-container" class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Looking for someone to chat with...</p>
+                </div>
+                
+                <div class="messages-container" id="messages"></div>
+                
+                <div class="input-container">
+                    <input type="text" id="message-input" placeholder="Type your message here..." disabled>
+                    <button id="send-button" class="send-button" disabled>Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>
