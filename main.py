@@ -7,9 +7,30 @@ import logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    force=True  # This ensures our logging config takes precedence
+)
+
+# Create logger for this module
+logger = logging.getLogger(__name__)
+# Ensure our logger's level is set
+logger.setLevel(logging.INFO)
+
+# Create console handler and set level
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# Create formatter
+formatter = logging.Formatter(
+    '%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
-logger = logging.getLogger(__name__)
+
+# Add formatter to handler
+console_handler.setFormatter(formatter)
+
+# Add handler to logger
+logger.addHandler(console_handler)
 
 app = FastAPI()
 
