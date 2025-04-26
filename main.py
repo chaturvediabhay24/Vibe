@@ -55,7 +55,7 @@ class ConnectionManager:
             return self.pairs[websocket]
         else:
             for connection in self.active_connections:
-                if connection not in self.pairs.values():
+                if connection not in self.pairs.values() and connection != websocket:
                     self.pairs[websocket] = connection
                     self.pairs[connection] = websocket
                     return connection
