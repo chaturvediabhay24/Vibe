@@ -1,7 +1,15 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 import uvicorn
+import logging
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -58,25 +66,39 @@ class ConnectionManager:
                 if connection not in self.pairs.values() and connection != websocket:
                     self.pairs[websocket] = connection
                     self.pairs[connection] = websocket
+                    logger.info(f"Paired client #{self.get_client_id(websocket)} with client #{self.get_client_id(connection)}")
                     return connection
         return None
 
     async def connect(self, websocket: WebSocket, client_id: str):
         await websocket.accept()
         self.active_connections.append(websocket)
-        print(f"active connections: {self.active_connections}")
-        
         self.pairs[websocket] = None
         self.client_id_map[websocket] = client_id
+        
+        paired_count = len([c for c in self.active_connections if self.pairs.get(c) is not None]) // 2
+        unpaired_count = len(self.active_connections) - (paired_count * 2)
+        logger.info(f"Client #{client_id} connected. Status: {paired_count} paired users, {unpaired_count} waiting for partner. Total: {len(self.active_connections)} users")
 
     def get_client_id(self, websocket: WebSocket):
         return self.client_id_map.get(websocket)
 
     def disconnect(self, websocket: WebSocket):
+        client_id = self.get_client_id(websocket)
+        partner = self.pairs.get(websocket)
+        self.pairs[websocket] = None
+        if partner:
+            self.pairs[partner] = None
+            logger.info(f"Client #{client_id} disconnected from their partner #{self.get_client_id(partner)}")
         self.active_connections.remove(websocket)
+        
+        paired_count = len([c for c in self.active_connections if self.pairs.get(c) is not None]) // 2
+        unpaired_count = len(self.active_connections) - (paired_count * 2)
+        logger.info(f"Client #{client_id} disconnected. Status: {paired_count} paired users, {unpaired_count} waiting for partner. Total: {len(self.active_connections)} users")
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
+        logger.debug(f"Message sent to client #{self.get_client_id(websocket)}: {message}")
 
     async def broadcast(self, message: str):
         for connection in self.active_connections:
@@ -97,6 +119,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int):
     try:
         while True:
             data = await websocket.receive_text()
+            logger.debug(f"Received message from client #{client_id}: {data}")
             partner = manager.get_partner(websocket)
             if partner:
                 await manager.send_personal_message(f"YOU: {data}", websocket)
@@ -109,4 +132,5 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int):
         
 
 if __name__ == "__main__":
+    logger.info("Starting WebSocket Chat server on http://0.0.0.0:8000")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
