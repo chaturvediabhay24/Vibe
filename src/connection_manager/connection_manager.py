@@ -33,9 +33,6 @@ class ConnectionManager:
         self.active_connections.append(websocket)
         self.pairs[websocket] = None
         self.client_id_map[websocket] = client_id
-        print(f"No of active connections: {len(self.active_connections)}")
-        print(f"active: {self.active_connections}")
-        print(f"pairs: {self.pairs}")
         
         # Send welcome message
         await self.send_personal_message("Connected to chat. Waiting for a partner...", websocket)
@@ -57,9 +54,6 @@ class ConnectionManager:
         # Clean up maps
         self.pairs.pop(websocket, None)
         self.client_id_map.pop(websocket, None)
-        print(f"No of active connections: {len(self.active_connections)}")
-        print(f"active: {self.active_connections}")
-        print(f"pairs: {self.pairs}")
 
     def get_client_id(self, websocket: WebSocket) -> Optional[int]:
         """Get client ID for the given websocket."""
