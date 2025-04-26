@@ -1,12 +1,15 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from src.connection_manager import ConnectionManager
+import json
+from datetime import datetime
+
 manager = ConnectionManager()
 
-app = FastAPI()
+app = FastAPI(title="Vibe Chat")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,13 +18,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve static files from frontend directory
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
 templates = Jinja2Templates(directory="frontend/templates")
 
 
 @app.get("/")
-async def get():
-    return templates.TemplateResponse("index.html", {"request": {}})
+async def get(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.websocket("/ws/{client_id}")
@@ -32,12 +36,16 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int):
             data = await websocket.receive_text()
             partner = manager.get_partner(websocket)
             if partner:
-                await manager.send_personal_message(f"YOU: {data}", websocket)
-                await manager.send_personal_message(f"{manager.get_client_id(websocket)}: {data}", partner)
+                # Send message to sender
+                # await manager.send_personal_message(data, websocket)
+                # Send message to partner
+                await manager.send_personal_message(data, partner)
             else:
-                await manager.send_personal_message(f"Could not find partner for you", websocket)
+                await manager.send_personal_message("Waiting for someone to chat with...", websocket)
     except WebSocketDisconnect:
-        await manager.send_personal_message(f"Client #{manager.get_client_id(websocket)} left the chat", manager.get_partner(websocket))
+        partner = manager.get_partner(websocket)
+        if partner:
+            await manager.send_personal_message("Your chat partner has disconnected.", partner)
         manager.disconnect(websocket)
         
 

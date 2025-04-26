@@ -55,16 +55,8 @@ function sendMessage(event) {
 // Scroll to bottom of messages
 function scrollToBottom() {
     const messagesContainer = document.querySelector('.messages-container');
-    setTimeout(() => {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }, 100); // Small delay to ensure content is rendered
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
-
-// Scroll to bottom on page load
-window.addEventListener('load', scrollToBottom);
-
-// Scroll to bottom when window is resized
-window.addEventListener('resize', scrollToBottom);
 
 // Add typing animation
 const messageInput = document.getElementById('messageText');
