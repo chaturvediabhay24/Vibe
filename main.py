@@ -2,35 +2,19 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 import uvicorn
 import logging
+import sys
 
-# Configure logging
+# Configure logging globally
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    force=True  # This ensures our logging config takes precedence
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[logging.StreamHandler(sys.stdout)],  # explicitly set handler
+    force=True  # force override any existing config (important when using reload=True)
 )
 
-# Create logger for this module
+# Create module logger
 logger = logging.getLogger(__name__)
-# Ensure our logger's level is set
-logger.setLevel(logging.INFO)
-
-# Create console handler and set level
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-
-# Create formatter
-formatter = logging.Formatter(
-    '%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-# Add formatter to handler
-console_handler.setFormatter(formatter)
-
-# Add handler to logger
-logger.addHandler(console_handler)
 
 app = FastAPI()
 
@@ -154,4 +138,11 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int):
 
 if __name__ == "__main__":
     logger.info("Starting WebSocket Chat server on http://0.0.0.0:8000")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_config=None,  # <-- ADD this
+        log_level="info"  # <-- optional, good to be explicit
+    )
